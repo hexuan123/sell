@@ -1,22 +1,19 @@
 <template>
 	<div class="goods">
 <!-- 左边菜单栏开始 -->
-  <div class="menu-wrapper">
+  <div class="menu-wrapper" ref="menuWrapper">
   	<ul>
-  		<li v-for="item in goods" class="menu-item">
+  		<li v-for="(item,index) in goods" class="menu-item" :class="{'current':currentIndex===index}" @click="selectMenu(index,$event)">
   			<span class="text">
   				<span v-show="item.type>0" class="icon" :class="iconClass[item.type]"></span>{{item.name}}
   			</span>
   		</li>
   	</ul>
   </div>
-  <!-- 左边菜单栏结束 -->
-
-
 <!-- 右边食品开始 -->
-  <div class="foods-wrapper">
+  <div class="foods-wrapper" ref="foodsWrapper">
   	<ul>
-  		<li v-for="item in goods" class="food-list">
+  		<li v-for="item in goods" class="food-list food-list-hook">
   			<h1 class="title">{{item.name}}</h1>
   			<ul>
   				<li v-for="food in item.foods" class="food-item">
@@ -27,8 +24,7 @@
   						<h2 class="name">{{food.name}}</h2>
   						<p class="desc">{{food.description}}</p>
   						<div class="extra">
-  							<span class="count">月售{{food.sellCount}}份</span>
-  							<span>好评率{{food.rating}}%</span>
+  							<span class="count">月售{{food.sellCount}}份</span><span>好评率{{food.rating}}%</span>
   						</div>
   						<div class="price">
   							<span class="now">￥{{food.price}}</span>
@@ -40,11 +36,16 @@
   		</li>
   	</ul>
   </div>
-  <!-- 右边食品结束 -->
+<!-- 购物车模板开始 -->
+<shopcart :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
   </div>
+
+
 </template>
 
 <script type="es6">
+import shopcart from '../components/shopcart/shopcart.vue'
+import BScroll from 'better-scroll'
 import axios from 'axios'
 export default {
   name: 'Goods',
@@ -54,13 +55,70 @@ export default {
   	return{
         goods:{},
         iconClass:["decrease","discount","special","invoice","guarantee"],
+        ListHeight:[],
+        scrollY:0
   	}
+  },
+  computed:{
+     currentIndex(){
+     	for(let i =0;i<this.ListHeight.length;i++){
+     		let height1 = this.ListHeight[i];
+     		let height2 = this.ListHeight[i + 1];
+     		if(!height2 || (this.scrollY >= height1 && this.scrollY < height2)){
+     			return i;
+     		}
+     	}
+     	return 0;
+     }
   },
   mounted(){
   	//通过axios获取商品信息
     axios.get("/api/goods").then((reData)=>{
-           this.goods = reData.data.data
+           this.goods = reData.data.data;
+           this.$nextTick(() => {
+           	 this.initScroll();//模拟手机滚动插件
+           	 this.calculateHeight();//计算每个商品类的高度
+           });         
     })
+  },
+  methods:{
+  	selectMenu(index,event){
+  		if(!event._constructed){
+  			return;
+  		}
+  		else{
+  			let foodList = this.$refs.foodsWrapper.getElementsByClassName("food-list-hook");
+  			let el = foodList[index];
+  			this.foodsScroll.scrollToElement(el,300);
+  		}
+  		},
+  	initScroll(){
+  		//better scroll插件的使用 vue2.0获取节点是refs方法
+  		this.menuScroll = new BScroll(this.$refs.menuWrapper,{
+  			click:true//better scroll插件需要加上，点击事件才能触发
+  		});
+  		this.foodsScroll = new BScroll(this.$refs.foodsWrapper,{
+  			probeType:3
+  		});
+  		this.foodsScroll.on('scroll',(pos)=>{
+  			this.scrollY = Math.abs(Math.round(pos.y));
+  		});
+  	},
+  	calculateHeight(){
+  		//获取到每个li
+  		let foodList = this.$refs.foodsWrapper.getElementsByClassName("food-list-hook");
+  		let height =0;
+  		//在定义的各个高度数值ListHeight里面push各个LI的高度
+  		this.ListHeight.push(height);
+  		for(let i=0;i<foodList.length;i++){
+  			let item = foodList[i];
+  			height += item.offsetHeight;
+  		    this.ListHeight.push(height);
+  		}
+  	}
+  },
+  components:{
+  	shopcart
   }
   
 }
@@ -87,6 +145,16 @@ export default {
 			width:56px;
 			line-height:14px;
 			padding:0 12px;
+			&.current{
+				position:relative;
+				margin-top:-1px;
+				z-index:10;
+				background:#fff;
+				font-weight:700;
+				.text{
+					border-bottom:none;
+				}
+			}
 			.icon{
 				display:inline-block;
                 width:12px;
@@ -156,7 +224,7 @@ export default {
 					margin-bottom:8px;
 				}
 				.extra{
-				     &.count{
+				     .count{
                         margin-right:12px;
 				     }
 				}
