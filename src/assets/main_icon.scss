@@ -2,6 +2,6 @@
 	background-image: url('images/#{$url}@2x.png');
 }
 @mixin bg-img2($url) {
-	background-image: url('../../static/images/#{$url}@2x.png');
+	background-image: url('../assets/images/#{$url}@2x.png');
 }
 
