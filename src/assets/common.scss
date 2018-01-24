@@ -1,0 +1,19 @@
+html,body{font-size: 12px;color: #333;font-weight:200}
+#app{height: 100%;width:100%;}
+html,body,ul,h1,h2{margin: 0};
+h1,h2,h3{font-size: 1.16rem;}
+ul{padding: 0}li{list-style: none;}
+p{margin:0}
+.clearfix{
+	display: inline-block;
+	&:after{	
+	display:block;
+	content: ".";
+	height: 0;
+	line-height: 0;
+	clear: both;
+	visibility: hidden;
+}
+}
+
+
