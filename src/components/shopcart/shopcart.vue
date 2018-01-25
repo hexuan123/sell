@@ -3,16 +3,19 @@
 		<div class="content">
 			<div class="content-left">
 				<div class="logo-wrapper">
-					<div class="logo">
-						<i class="el-icon-sold-out"></i>
+					<div class="logo" :class="{'highlight':totalCount>0}">
+						<i class="el-icon-sold-out" :class="{'highlight':totalCount>0}"></i>
+					</div>
+					<div class="num" v-show="totalCount">
+					{{totalCount}}
 					</div>
 				</div>
-				<div class="price">￥{{totalPrice}}元</div>
+				<div class="price" :class="{'highlight':totalPrice>0}">￥{{totalPrice}}元</div>
 				<div class="desc">另需配送费￥{{deliveryPrice}}元</div>
 			</div>
 			<div class="content-right">
-				<div class="pay">
-					￥{{minPrice}}起送
+				<div class="pay" :class="payclass">
+					{{payDesc}}
 				</div>
 			</div>
 		</div>
@@ -20,15 +23,15 @@
 </template>
 <script type="es6">
 	export default{
-		selectFoods:{
+		props:{
+			selectFoods:{
              type:Array,
-             default(){
+             default:function(){
              	return [
-             	{price:10,count:1}
+             	
              	];
              }
 		},
-		props:{
 			deliveryPrice:{
 				type:Number,
 				default:0
@@ -38,13 +41,48 @@
 				default:0
 			}
 		},
-		computed:{ 
+		data(){
+			return{}
+		},
+		mounted(){
+			
+
+		},
+		computed:{
+		//计算商品的总价格 
 		totalPrice(){
 			let total = 0;
 			this.selectFoods.forEach((food) => {
 				total += food.price * food.count;
 			});
 			return total;
+		},
+		//选择商品的数量
+		totalCount(){
+			let count =0;
+			this.selectFoods.forEach((food)=>{
+				count += food.count
+			});
+			return count;
+		},
+		//商品送货描述
+		payDesc(){
+			if(this.totalPrice === 0){
+				return `￥${this.minPrice}元起送`;
+			}else if(this.totalPrice<this.minPrice){
+				let diff = this.minPrice-this.totalPrice
+				return `还差￥${diff}元起送`;
+			}else{
+				return '去结算';
+			}
+		},
+		//计算结算按钮在不同状态的样式
+		payclass(){
+			if(this.totalPrice<this.minPrice){
+				return 'not-enough';
+			}else{
+				return 'enough';
+			}
 		}
 	}
 	
@@ -83,12 +121,32 @@
 					    border-radius:50%;
 					    background:#2b343c;
 					    text-align:center;
+					    &.highlight{
+					    	background:rgb(0,160,220);
+					    }
 					    i{
 					    	font-size:24px;
 					    	color:#80858a;
 					    	line-height:44px;
-
+					    	&.highlight{
+					    	color:#fff;
 					    }
+					    }
+					}
+					.num{
+						position:absolute;
+						top:0px;
+						right:0px;
+						width:24px;
+						height:16px;
+						line-height:16px;
+						text-align:center;
+						border-radius:16px;
+						font-size:9px;
+						font-weight:400;
+						color:#fff;
+						background:rgb(240,20,20);
+						box-shadow:0 4px 8px 0 rgba(0,0,0,0.4)
 					}
 				}
 				.price{
@@ -102,6 +160,9 @@
                     font-size:16px;
                     font-weight:700;
                     color:rgba(255,255,255,0.4);
+                    &.highlight{
+					    color: #fff;
+					    }
 				}
 				.desc{
                    display:inline-block;
@@ -122,9 +183,15 @@
 					font-size:12px;
 					color:rgba(255,255,255,0.4);
 					font-weight:700;
-					background:#2b333b
+					background:#2b333b;
+					&.not-enough{
+						background:#2b333b;
+					}
+					&.enough{
+						background:#00b43c;
+						color:#fff;
+					}
 				}
-			}
-		}
+			}}
 	}
 </style>

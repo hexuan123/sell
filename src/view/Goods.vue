@@ -30,14 +30,18 @@
   							<span class="now">￥{{food.price}}</span>
   							<span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
   						</div>
+              <div class="cartcontrol-wrapper">
+              <cartcontrol :food="food"></cartcontrol>
+              </div>
   					</div>
+
   				</li>
   			</ul>
   		</li>
   	</ul>
   </div>
 <!-- 购物车模板开始 -->
-<shopcart :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
+<shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
   </div>
 
 
@@ -45,6 +49,7 @@
 
 <script type="es6">
 import shopcart from '../components/shopcart/shopcart.vue'
+import cartcontrol from '../components/cartcontrol/cartcontrol.vue'
 import BScroll from 'better-scroll'
 import axios from 'axios'
 export default {
@@ -53,7 +58,7 @@ export default {
   props:['seller'],
   data(){
   	return{
-        goods:{},
+        goods:[],
         iconClass:["decrease","discount","special","invoice","guarantee"],
         ListHeight:[],
         scrollY:0
@@ -69,6 +74,17 @@ export default {
      		}
      	}
      	return 0;
+     },
+     selectFoods(){
+      let foods=[];
+      this.goods.forEach((good)=>{
+        good.foods.forEach((food)=>{
+          if(food.count){
+            foods.push(food);
+          }
+        });
+      });
+      return foods;
      }
   },
   mounted(){
@@ -98,7 +114,7 @@ export default {
   			click:true//better scroll插件需要加上，点击事件才能触发
   		});
   		this.foodsScroll = new BScroll(this.$refs.foodsWrapper,{
-  			probeType:3
+  			click:true,probeType:3
   		});
   		this.foodsScroll.on('scroll',(pos)=>{
   			this.scrollY = Math.abs(Math.round(pos.y));
@@ -118,7 +134,8 @@ export default {
   	}
   },
   components:{
-  	shopcart
+  	shopcart,
+    cartcontrol
   }
   
 }
@@ -190,6 +207,7 @@ export default {
 			background:#f3f5f7;
 		}
 		.food-item{
+      position:relative;
 			display:flex;
 			margin:18px;
 			padding-bottom:18px;
@@ -208,6 +226,7 @@ export default {
 			}
 			.content{
 				flex:1;
+        
 				.name{
 					margin:2px 0 8px 0;
 					height:14px;
@@ -240,8 +259,12 @@ export default {
 						text-decoration:line-through;
 						font-size:10px;
 						color:rgb(147,153,159);
-					}
-				}
+					}}
+        .cartcontrol-wrapper{
+          position:absolute;
+          right:0px;
+          bottom:12px;          
+        }
 			}
 		}
 	}
