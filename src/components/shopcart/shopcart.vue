@@ -1,6 +1,6 @@
 <template>
 	<div class="shopcart">
-		<div class="content">
+		<div class="content" @click="togalllist">
 			<div class="content-left">
 				<div class="logo-wrapper">
 					<div class="logo" :class="{'highlight':totalCount>0}">
@@ -19,16 +19,41 @@
 				</div>
 			</div>
 		</div>
+		
+		<div v-show="listshow1" class="shopcart-wrapper">
+		<div class="shopcart-list" v-show="listshow">
+			<div class="list-header">
+				<h1 class="title">购物车</h1>
+				<span class="empty">清空</span>
+			</div>
+			<div class="list-content" ref="listContent" @click="aaaa">
+				<ul>
+					<li class="food" v-for="food in selectFoods">
+						<span class="name">{{food.name}}</span>
+						<div class="price">
+							<span>￥{{food.price*food.count}}</span>
+						</div>
+						<div class="cartcontrol-wrapper">
+                        <cartcontrol :food="food"></cartcontrol>
+                         </div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		</div>
+		
 	</div>
 </template>
 <script type="es6">
+import BScroll from 'better-scroll'
+import cartcontrol from '../cartcontrol/cartcontrol.vue'
 	export default{
 		props:{
 			selectFoods:{
              type:Array,
              default:function(){
              	return [
-             	
+             	   
              	];
              }
 		},
@@ -42,11 +67,22 @@
 			}
 		},
 		data(){
-			return{}
+			return{
+				listshow1:false
+			}
+		},
+		methods:{
+			togalllist(){
+				this.listshow1=!this.listshow1
+			},
+			aaaa(){
+				alert(1);
+			}
+		},
+		components:{
+			cartcontrol
 		},
 		mounted(){
-			
-
 		},
 		computed:{
 		//计算商品的总价格 
@@ -83,6 +119,23 @@
 			}else{
 				return 'enough';
 			}
+		},
+		//购物车展开
+		listshow(){
+			if(this.totalCount){
+				let listshow = true;
+				return listshow;
+				if(listshow){
+					this.$nextTick(()=>{
+						this.scroll = new BScroll(this.$refs.listContent,{
+							click:true
+						});
+					});
+				}
+			}else {
+				let listshow = false;
+				return listshow;
+			}		
 		}
 	}
 	
@@ -193,5 +246,66 @@
 					}
 				}
 			}}
+		.shopcart-wrapper{
+			position:absolute;
+			width:100%;
+			bottom:100%;
+         .shopcart-list{
+			position:relative;
+			top:0px;
+			left:0px;
+			z-index:-1;
+			width:100%;
+			.list-header{
+				height:40px;
+				line-height:40px;
+				padding:0 18px;	
+				background:#f3f5f7;			
+				border-bottom:1px solid rgba(7,17,27,0.1);
+				.title{
+					float:left;
+					font-size:14px;
+					color:rgb(7,17,27);
+				}
+				.empty{
+					float:right;
+					font-size:12px;
+					color:rgb(0,160,220);
+				}
+
+			}
+			.list-content{
+				paddin:0 18px;
+				max-height:217px;
+				background:#fff;
+				overflow:hidden;
+				.food{
+					position:relative;
+					padding:12px;
+					box-sizing:border-box;
+					border-bottom:1px solid rgba(7,17,27,0.1);
+					.name{
+						line-height:24px;
+						font-size:14px;
+						color:rgb(7,17,27);
+					}
+					.price{
+						position:absolute;
+						right:90px;
+						bottom:12px;
+						line-height:24px;
+						font-size:14px;
+						font-weight:700;
+						color:rgb(240,20,20);
+					}
+					.cartcontrol-wrapper{
+						position:absolute;
+						right:0;
+						bottom:6px;
+					}
+				}
+			}
+		}
+		}
 	}
 </style>
