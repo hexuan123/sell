@@ -16,7 +16,7 @@
   		<li v-for="item in goods" class="food-list food-list-hook">
   			<h1 class="title">{{item.name}}</h1>
   			<ul>
-  				<li v-for="food in item.foods" class="food-item">
+  				<li v-for="food in item.foods" class="food-item" @click="selectFood(food,$event)">
   					<div class="icon">
   						<img :src="food.icon">
   					</div>
@@ -42,6 +42,8 @@
   </div>
 <!-- 购物车模板开始 -->
 <shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
+<!-- 商品详情 -->
+<food :food="selectedFood" ref="food"></food>
   </div>
 
 
@@ -50,6 +52,7 @@
 <script type="es6">
 import shopcart from '../components/shopcart/shopcart.vue'
 import cartcontrol from '../components/cartcontrol/cartcontrol.vue'
+import food from '../components/food/food.vue'
 import BScroll from 'better-scroll'
 import axios from 'axios'
 export default {
@@ -61,7 +64,8 @@ export default {
         goods:[],
         iconClass:["decrease","discount","special","invoice","guarantee"],
         ListHeight:[],
-        scrollY:0
+        scrollY:0,
+        selectedFood:{}
   	}
   },
   computed:{
@@ -131,11 +135,19 @@ export default {
   			height += item.offsetHeight;
   		    this.ListHeight.push(height);
   		}
-  	}
+  	},
+    selectFood(food,event){
+        if(!event._constructed){
+        return;
+      }
+      this.selectedFood = food;
+      this.$refs.food.show();
+    }
   },
   components:{
   	shopcart,
-    cartcontrol
+    cartcontrol,
+    food
   }
   
 }
@@ -159,7 +171,7 @@ export default {
 		.menu-item{
 			display:table;
 			height:54px;
-			width:56px;
+			width:94px;
 			line-height:14px;
 			padding:0 12px;
 			&.current{

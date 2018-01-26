@@ -143,7 +143,7 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 				return 'enough';
 			}
 		},
-		listshow(){			
+		listshow1(){			
 				if(!this.totalCount){
                 return this.listshow = false;           
 			}
