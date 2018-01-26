@@ -1,5 +1,5 @@
 <template>
-	<div class="shopcart">
+      <div class="shopcart">
 		<div class="content" @click="togalllist">
 			<div class="content-left">
 				<div class="logo-wrapper">
@@ -13,20 +13,20 @@
 				<div class="price" :class="{'highlight':totalPrice>0}">￥{{totalPrice}}元</div>
 				<div class="desc">另需配送费￥{{deliveryPrice}}元</div>
 			</div>
-			<div class="content-right">
+			<div class="content-right" @click.stop="pay">
 				<div class="pay" :class="payclass">
 					{{payDesc}}
 				</div>
-			</div>
-		</div>
-		
-		<div v-show="listshow1" class="shopcart-wrapper">
+			</div></div>
+		<div class="list-mask" v-show="listshow" @click="hideList"></div>
+
+	    <transition name="fade">
 		<div class="shopcart-list" v-show="listshow">
 			<div class="list-header">
 				<h1 class="title">购物车</h1>
-				<span class="empty">清空</span>
+				<span class="empty" @click="clearGoods">清空</span>
 			</div>
-			<div class="list-content" ref="listContent" @click="aaaa">
+			<div class="list-content" ref="listContent">
 				<ul>
 					<li class="food" v-for="food in selectFoods">
 						<span class="name">{{food.name}}</span>
@@ -34,15 +34,15 @@
 							<span>￥{{food.price*food.count}}</span>
 						</div>
 						<div class="cartcontrol-wrapper">
-                        <cartcontrol :food="food"></cartcontrol>
+                        <cartcontrol :food="food" :selectFoods='selectFoods'></cartcontrol>
                          </div>
 					</li>
 				</ul>
 			</div>
 		</div>
-		</div>
-		
-	</div>
+		</transition>
+		</div>	
+
 </template>
 <script type="es6">
 import BScroll from 'better-scroll'
@@ -68,21 +68,44 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 		},
 		data(){
 			return{
-				listshow1:false
+				listshow:false
 			}
 		},
 		methods:{
-			togalllist(){
-				this.listshow1=!this.listshow1
+			//点击遮罩层销售购物车列表
+			hideList(){
+				this.listshow=false
 			},
-			aaaa(){
-				alert(1);
-			}
+			//清除购物车列表
+			clearGoods(){
+               this.selectFoods.forEach((foods) => {
+        foods.count=0;
+      })
+      this.listshow=false;
+    },
+		//点击显示影藏购物车列表	
+			togalllist(){
+      if(!this.selectFoods.length) return;//如果返回的值为空
+      this.listshow= !this.listshow
+    },
+    //去结算
+    pay(){
+    	if(this.totalPrice<this.minPrice){
+            return;
+    	}else{
+    		window.alert(this.totalPrice)
+    	}
+    }
 		},
 		components:{
 			cartcontrol
 		},
 		mounted(){
+			this.$nextTick(()=>{
+						this.scroll = new BScroll(this.$refs.listContent,{
+							click:true
+						});
+					});
 		},
 		computed:{
 		//计算商品的总价格 
@@ -120,8 +143,31 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 				return 'enough';
 			}
 		},
+		listshow(){			
+				if(!this.totalCount){
+                return this.listshow = false;           
+			}
+             
+			/*get:function(){
+				if(this.totalCount){
+				return this.listshow = true;
+			}else {
+				
+				return this.listshow = false;
+			}	
+			},
+			set:function(){
+         if(this.totalCount){
+				let listshow = true;
+				return listshow;
+			}else {
+				let listshow = false;
+				return listshow;
+			}		
+			}*/
+		}
 		//购物车展开
-		listshow(){
+		/*listshow(){
 			if(this.totalCount){
 				let listshow = true;
 				return listshow;
@@ -136,12 +182,34 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 				let listshow = false;
 				return listshow;
 			}		
-		}
+		}*/
 	}
 	
 	}
 </script>
 <style lang="scss">
+.fade-enter-active, .fade-leave-active {
+  transition: all .5s;
+}
+.fade-enter, .fade-leave-to {
+  transform:translate3d(0,240px,0);
+}
+.fade1-enter-active, .fade-leave-active {
+  transition: all .5s;
+}
+.fade1-enter, .fade-leave-to {
+  opacity:0;
+}
+.list-mask{
+			position:fixed;
+			top:0px;
+			left:0px;
+			width:100%;
+			height:100%;
+			z-index:-20;
+			background:rgba(7,17,27,0.6);
+		}
+
 	.shopcart{
 		position:fixed;
 		left:0xp;
@@ -245,17 +313,13 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 						color:#fff;
 					}
 				}
-			}}
-		.shopcart-wrapper{
+			}
+		}
+         .shopcart-list{
 			position:absolute;
 			width:100%;
 			bottom:100%;
-         .shopcart-list{
-			position:relative;
-			top:0px;
-			left:0px;
 			z-index:-1;
-			width:100%;
 			.list-header{
 				height:40px;
 				line-height:40px;
@@ -271,12 +335,10 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 					float:right;
 					font-size:12px;
 					color:rgb(0,160,220);
-				}
-
-			}
+				}}
 			.list-content{
 				paddin:0 18px;
-				max-height:217px;
+				max-height:237px;
 				background:#fff;
 				overflow:hidden;
 				.food{
@@ -306,6 +368,7 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 				}
 			}
 		}
-		}
+
 	}
+		
 </style>
