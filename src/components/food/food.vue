@@ -17,7 +17,7 @@
 					<span class="now">￥{{food.price}}</span><span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
 				</div>
 				<div class="cartcontrol-wrapper">
-				<cartcontrol :food="food"></cartcontrol>
+				<cartcontrol :food="food" @click="addFood"></cartcontrol>
 			</div>
 			<transition name="fadefood">
 			<div class="buy" v-show="!food.count || food.count===0" @click.stop="addFrist">加入购物车</div>
@@ -31,22 +31,24 @@
 			<split></split>
 			<div class="rating">
 			<h1 class="title">商品评价</h1>
-			<ratingselect :select-type="selectType" :only-content="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
+			<ratingselect @select="selectRating" @toggle="toggleContent" :select-type="selectType" :only-content="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
 			<div class="rating-wrapper">
-				<ul v-show="food.ratings && food.ratings.length">
-					<li v-for="rating in food.ratings" class="rating-item">
+				<ul v-show="food.ratings">
+					<li v-for="rating in food.ratings" class="rating-item" v-show="needShow(rating.rateType,rating.text)">
 						<div class="user">
 							<span class="name">{{rating.username}}</span>
 							<img :src=rating.avatar style="width:12px; height:12px;">
 						</div>
-						<div class="time">{{rating.rateTime}}</div>
+						<div class="time">{{rating.rateTime | formatDate}}</div>
 						<p class="text">
 							<span :class="{'glyphicon glyphicon-thumbs-up':rating.rateType===0,'glyphicon glyphicon-thumbs-down':rating.rateType===1}"></span>
 							{{rating.text}}
 						</p>
 					</li>
 				</ul>
-				<div class="no-rating" v-show="!food.ratings && !food.ratings.length"></div>
+				<div class="no-rating" v-show="!food.ratings || !food.ratings.length">
+				暂无评价
+				</div>
 			</div>
 			</div>
 		</div>
@@ -58,6 +60,7 @@
 import Vue from 'vue'
 import cartcontrol from '../cartcontrol/cartcontrol.vue'
 import split from '../split/split.vue'
+import {formatDate} from '../../assets/date.js'
 import ratingselect from '../ratingselect/ratingselect.vue'
 import BScroll from 'better-scroll'
         const POSITIVE = 0;
@@ -81,7 +84,7 @@ import BScroll from 'better-scroll'
         	show(){
               this.showFlag = true;
               this.selectType = ALL;
-              onlyContent:true;
+              this.onlyContent=true;
               this.$nextTick(()=>{
                    if(!this.scroll){
                    	this.scroll = new BScroll(this.$refs.food,{
@@ -100,6 +103,37 @@ import BScroll from 'better-scroll'
                      return
                  }
                  Vue.set(this.food,'count',1)
+        	},
+        	needShow(type,text){
+        		if(this.onlyContent && !text){
+        			return false;
+        		}
+        		if(this.selectType === ALL){
+                     return true;
+        		}else{
+                    return type === this.selectType;
+        		}
+        	},
+        	addFood(target) {
+         this.$emit('add', target);
+      },
+      selectRating(type) {
+        this.selectType = type;
+        this.$nextTick(() => {
+          this.scroll.refresh();
+        });
+      },
+      toggleContent() {
+        this.onlyContent = !this.onlyContent;
+        this.$nextTick(() => {
+          this.scroll.refresh();
+        });
+      }
+        },
+        filters:{
+        	formatDate(time){
+        		let date = new Date(time);
+        		return formatDate(date, 'yyyy-MM-dd hh:mm');
         	}
         },
         components:{
@@ -282,6 +316,11 @@ import BScroll from 'better-scroll'
 								color:rgb(147,153,159);
 							}
 						}
+					}
+					.no-rating{
+						padding:16px 0;
+						font-size:12px;
+						color:rgb(147,153,159);
 					}
 				}
 			}
